@@ -22,7 +22,10 @@ public class Player : MonoBehaviour
             _health = MinHealth;
         }
 
-        _sliderChanger.OnButtonClicked(-value);
+        ValueChangeDown.ChangeValue.Invoke();
+        ValueChangeDown.Value = -value;
+
+        //_sliderChanger.OnButtonClicked(-value);
     }
 
     public void Heal(float value)
@@ -35,7 +38,10 @@ public class Player : MonoBehaviour
         {
             _health = MaxHealth;
         }
-        
-        _sliderChanger.OnButtonClicked(value);
+
+        //_sliderChanger.OnButtonClicked(value);
+
+        ValueChangeDown.Value = value;
+        ValueChangeDown.ChangeValue.Invoke();      
     }
 }

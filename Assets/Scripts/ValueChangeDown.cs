@@ -2,70 +2,66 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.Events;
+
 
 public class ValueChangeDown : MonoBehaviour
 {
     [SerializeField] private Slider _healthbar;
     [SerializeField] private float _loopTime;
 
-    private float _value = 0;
+    public static UnityEvent ChangeValue;
+
+    public static float Value = 0;
     private float _epsilon = 0.01f;
+    private Coroutine _coroutine;
 
     private void Start()
     {
         _healthbar.maxValue = Player.MaxHealth;
         _healthbar.minValue = Player.MinHealth;
         _healthbar.value = Player.MaxHealth;
+
+        ChangeValue = new UnityEvent();
+
+        ChangeValue.AddListener(StartMovement);       
     }
 
-    private void FixedUpdate()
+    public void StartMovement()
     {
-        if (Mathf.Abs(_value) > _epsilon)
+        if (_coroutine != null)
         {
-            MoveSlider();
+            StopCoroutine(_coroutine);
         }
+
+        _coroutine = StartCoroutine(MoveSlider());
+        Debug.Log("Work");
     }
     
-    private void MoveSlider()
-    {        
-        if (Mathf.Abs(_value) > _epsilon)
+    private IEnumerator MoveSlider()
+    {         
+        while (Mathf.Abs(Value) > _epsilon)
         {
-            float speedBySecond = _value / _loopTime;
+            float speedBySecond = Value / _loopTime;
             float speedByUpdate = speedBySecond * Time.deltaTime;
-
-            Debug.Log($"spByUp - {speedByUpdate}\n sumHlthSpByUp - {_healthbar.value + speedByUpdate}");
 
             if (speedByUpdate > 0)
             {
-                if (_healthbar.value + speedByUpdate > _healthbar.maxValue)
-                {
-                    _healthbar.value = _healthbar.maxValue;
-                    _value = 0;
-                }
-                else
-                {
-                    _value -= speedByUpdate;
-                    _healthbar.value += speedByUpdate;
-                }
+                Value = Mathf.Clamp(Value - speedByUpdate, 0, Value);
             }
             else
             {
-                if (_healthbar.value + speedByUpdate < _healthbar.minValue)
-                {
-                    _healthbar.value = _healthbar.minValue;
-                    _value = 0;
-                }
-                else
-                {
-                    _value -= speedByUpdate;
-                    _healthbar.value += speedByUpdate;
-                }
+                Value = Mathf.Clamp(Value + speedByUpdate, Value, 0);
             }
+
+            _healthbar.value = Mathf.Clamp(_healthbar.value + speedByUpdate, _healthbar.minValue, _healthbar.maxValue);
+
+            yield return new WaitForFixedUpdate();
         }
     }
 
     public void OnButtonClicked(float value)
     {
-        _value += value;
+        Value += value;
     }
 }
